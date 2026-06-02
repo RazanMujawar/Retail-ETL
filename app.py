@@ -1,3 +1,5 @@
+#utils/ app.py
+
 from unittest import result
 import google.generativeai as genai
 import requests
@@ -9,6 +11,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from utils.ai_helper import generate_ai_summary
+
+from utils.profiling import (
+    calculate_quality_score,
+    generate_metadata
+)
+
+from utils.dashboard import render_dashboard
+
+from utils.transformations import apply_missing_strategy
 
 if "ai_charts" not in st.session_state:
     st.session_state.ai_charts = None
@@ -65,7 +77,12 @@ if uploaded_file is not None:
             df = pd.read_excel(uploaded_file)
 
         st.success("✅ File uploaded successfully!")
-        
+        quality_score = calculate_quality_score(df)
+
+        metadata = generate_metadata(
+            df,
+            quality_score
+        )
         
 
         # -----------------------------
@@ -99,7 +116,49 @@ if uploaded_file is not None:
         st.header("⚙️ Data Transformation Options")
 
         transformed_df = df.copy()
+        missing_strategy = st.selectbox(
+    "Choose strategy",
+    [
+        "Do Nothing",
+        "Fill Numeric with Mean",
+        "Fill Numeric with Median",
+        "Fill All with Mode",
+        "Fill Categorical with 'Unknown'",
+        "Drop Missing Rows"
+    ]
+)
 
+        transformed_df = apply_missing_strategy(
+            transformed_df,
+            missing_strategy
+        )
+
+        remove_duplicates = st.checkbox(
+            "Remove Duplicate Rows"
+        )
+
+        if remove_duplicates:
+            transformed_df = transformed_df.drop_duplicates()
+
+        clean_columns = st.checkbox(
+            "Clean Column Names"
+        )
+
+        if clean_columns:
+
+            transformed_df.columns = (
+                transformed_df.columns
+                .str.strip()
+                .str.lower()
+                .str.replace(" ", "_")
+                .str.replace("-", "_")
+            )
+
+        st.subheader("📌 Transformed Dataset Preview")
+
+        st.dataframe(
+            transformed_df.head(20)
+        )
         
         # -----------------------------
         # DOWNLOAD CLEANED FILE
@@ -180,15 +239,10 @@ if uploaded_file is not None:
                 # CHART SECTION
                 # =============================
 
-                    allowed_charts = ["bar", "line", "scatter", "pie"]
-
-                    cols = st.columns(2)
-
-                    for idx, chart_data in enumerate(ai_charts):
-                        current_col = cols[idx % 2]
-
-                        with current_col:
-                            pass
+                render_dashboard(
+                    ai_charts,
+                    filtered_df
+                )
 
     except Exception as e:
             st.error(f"Error processing file: {e}")

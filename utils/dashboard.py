@@ -1,3 +1,5 @@
+# utils/dashboard.py
+
 import streamlit as st
 import matplotlib.pyplot as plt
 
@@ -21,27 +23,22 @@ def render_dashboard(ai_charts, filtered_df):
                 title = chart_data.get("title")
                 insight = chart_data.get("insight")
 
-# -----------------------------
-# VALIDATION
-# -----------------------------
                 if chart_type not in allowed_charts:
-                                    continue
+                    continue
 
-                if x_col not in transformed_df.columns:
-                                    continue
+                if x_col not in filtered_df.columns:
+                    continue
 
-                if y_col not in transformed_df.columns:
-                                    continue
+                if y_col not in filtered_df.columns:
+                    continue
 
                 st.markdown(f"### {title}")
+
                 if insight:
-                                    st.info(f"📌 Insight: {insight}")
+                    st.info(f"📌 Insight: {insight}")
 
                 fig, ax = plt.subplots(figsize=(6, 4))
-                                
-# -----------------------------
-# BAR CHART
-# -----------------------------
+
                 if chart_type == "bar":
 
                     grouped = (
@@ -57,9 +54,6 @@ def render_dashboard(ai_charts, filtered_df):
                         ax=ax
                     )
 
-# -----------------------------
-# LINE CHART
-# -----------------------------
                 elif chart_type == "line":
 
                     grouped = (
@@ -73,9 +67,6 @@ def render_dashboard(ai_charts, filtered_df):
                         ax=ax
                     )
 
-# -----------------------------
-# SCATTER CHART
-# -----------------------------
                 elif chart_type == "scatter":
 
                     ax.scatter(
@@ -83,12 +74,6 @@ def render_dashboard(ai_charts, filtered_df):
                         filtered_df[y_col]
                     )
 
-                    ax.set_xlabel(x_col)
-                    ax.set_ylabel(y_col)
-
-# -----------------------------
-# PIE CHART
-# -----------------------------
                 elif chart_type == "pie":
 
                     grouped = (
@@ -105,17 +90,13 @@ def render_dashboard(ai_charts, filtered_df):
                     )
 
                 ax.set_title(title)
+
                 plt.tight_layout()
+
                 st.pyplot(fig)
 
             except Exception as e:
 
-                                st.warning(
-                                f"Could not generate chart: {e}"
-                            )
-            except Exception as e:
-
-                    st.error(f"AI Error: {e}")
-            except Exception as e:
-                st.error(f"❌ Error: {e}")
-        
+                st.warning(
+                    f"Could not generate chart: {e}"
+                )

@@ -1,38 +1,71 @@
+#utils/ ai_helper.py
+
+import google.generativeai as genai
+import json
+
 def generate_ai_summary(metadata):
 
     model = genai.GenerativeModel("models/gemini-2.5-flash")
 
     prompt = f"""
-You are a data visualization expert.
+You are a Senior Data Analyst and Data Visualization Expert.
 
-Based on this dataset metadata, recommend the 4 best visualizations.
+Analyze the dataset metadata and recommend the 4 most meaningful visualizations.
 
-Return ONLY valid JSON.
+Your objective is to create charts that help business users quickly understand:
 
-Use this format:
+- Trends
+- Performance
+- Profitability
+- Comparisons
+- Patterns
+- Potential anomalies
+
+Rules:
+
+1. Return ONLY valid JSON.
+2. Do NOT return markdown.
+3. Use only these chart types:
+   - bar
+   - line
+   - scatter
+   - pie
+
+4. Avoid using:
+   - IDs
+   - Unique identifiers
+   - Customer names
+   - Columns with extremely high unique values
+
+5. Choose columns that provide genuine business value.
+
+6. Prefer:
+   - Category vs Sales
+   - Region vs Profit
+   - Time vs Revenue
+   - Sales vs Profit
+   - Segment comparisons
+
+7. Generate insights that:
+   - Explain what the chart shows
+   - Explain why it matters
+   - Be understandable to non-technical users
+   - Be 2-4 sentences long
+
+Return JSON in this format:
 
 [
-  {{
-    "chart": "bar",
-    "x": "column_name",
-    "y": "column_name",
-    "title": "chart title",
-    "insight": "2-3 sentence business-friendly explanation of the chart and what users should observe"
-    The insight should:
-    - explain what the chart shows
-    - explain why it matters
-    - be easy for non-technical users to understand
-    - avoid one-line responses
-  }}
+    {{
+        "chart": "bar",
+        "x": "column_name",
+        "y": "column_name",
+        "title": "Business Friendly Title",
+        "insight": "Detailed explanation"
+    }}
 ]
 
-Allowed chart types:
-- bar
-- line
-- scatter
-- pie
-
 Dataset Metadata:
+
 {metadata}
 """
 
